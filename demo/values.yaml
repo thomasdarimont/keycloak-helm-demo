@@ -1,0 +1,40 @@
+keycloak:
+
+  replicas: 3
+
+  persistence:
+    # Disable deployment of the PostgreSQL chart
+    deployPostgres: true
+
+    # The database vendor. Can be either "postgres", "mysql", "mariadb", or "h2"
+    dbVendor: postgres
+    dbName: keycloak
+    dbHost: mykeycloak
+    dbPort: 5432 # 5432 is PostgreSQL's default port. For MySQL it would be 3306
+    dbUser: keycloak
+
+    # Only used if no existing secret is specified. In this case a new secret is created
+    dbPassword: keycloak
+
+  extraInitContainers: |
+    - name: springio18-theme-provider
+      image: thomasdarimont/springio18-theme:1
+      imagePullPolicy: IfNotPresent
+      command:
+        - sh
+      args:
+        - -c
+        - |
+          echo "Copying theme..."
+          cp -R /springio18/* /theme
+      volumeMounts:
+        - name: theme
+          mountPath: /theme
+
+  extraVolumeMounts: |
+    - name: theme
+      mountPath: /opt/jboss/keycloak/themes/springio18
+
+  extraVolumes: |
+    - name: theme
+      emptyDir: {}
